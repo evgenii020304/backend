@@ -21,23 +21,58 @@ const ensureDataFileExists = () => {
     }
 };
 
-app.post('/save', (req, res) => {
-    const { data } = req.body;
+const getLastLine = () => {
+    try {
+        const filePath = path.join(__dirname, 'data.txt');
+        if (!fs.existsSync(filePath)) {
+            return null;
+        }
 
-    if (!data) {
-        return res.status(400).json({ error: 'Данные не предоставлены' });
+        const data = fs.readFileSync(filePath, 'utf8');
+        const lines = data.split('\n').filter(line => line.trim());
+        return lines.length > 0 ? lines[lines.length - 1] : null;
+    } catch (error) {
+        console.error('Ошибка чтения файла:', error);
+        return null;
+    }
+};
+
+app.post('/save', (req, res) => {
+    const {data} = req.body;
+
+    if(!data) {
+        return res.status(400).json({error: 'Данные не предоставлены'});
     }
 
-    const timestamp = new Date().toISOString();
+    const timestamp = new Date().toLocaleString('ru-RU');
     const entry = `[${timestamp}] ${data}\n`;
 
     fs.appendFile('data.txt', entry, (err) => {
-        if (err) {
+        if(err) {
             console.error('Ошибка записи:', err);
-            return res.status(500).json({ error: 'Ошибка сохранения' });
+            return res.status(500).json({error: 'Ошибка сохранения'});
         }
         console.log('Данные сохранены:', data);
-        res.json({ message: 'Данные успешно сохранены', timestamp });
+        res.json({message: 'Данные успешно сохранены', timestamp});
+    });
+});
+
+app.get('/data', (req, res) => {
+
+    const lastLine = getLastLine();
+
+    if (!lastLine) {
+        console.log('Файл пуст');
+        return res.json({
+            content: 'Файл data.txt пуст',
+            isEmpty: true
+        });
+    }
+
+    console.log('Последние данные:', lastLine);
+    res.json({
+        content: lastLine,
+        isEmpty: false
     });
 });
 
