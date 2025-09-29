@@ -74,6 +74,27 @@ async def save_data(request: SaveRequest):
         print(f" Ошибка сохранения: {e}")
         raise HTTPException(status_code=500, detail="Ошибка сохранения")
 
+@app.get("/data", response_model=DataResponse)
+async def get_data():
+    try:
+        last_line = get_last_line()
+
+        if not last_line:
+            return DataResponse(
+                content="Файл data.txt пуст",
+                isEmpty=True
+            )
+
+        print(f"Возвращаем последние данные: {last_line}")
+        return DataResponse(
+            content=last_line,
+            isEmpty=False
+        )
+
+    except Exception as e:
+        print(f"Ошибка получения данных.: {e}")
+        raise HTTPException(status_code=500, detail="Ошибка чтения файла")
+
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8000)
