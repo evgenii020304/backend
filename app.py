@@ -92,9 +92,8 @@ async def get_data():
         )
 
     except Exception as e:
-        print(f"Ошибка получения данных: {e}")
+        print(f"Ошибка получения данных.: {e}")
         raise HTTPException(status_code=500, detail="Ошибка чтения файла")
-
 
 if __name__ == "__main__":
     import uvicorn
