@@ -32,7 +32,7 @@ def ensure_data_file():
     if not os.path.exists(DATA_FILE):
         with open(DATA_FILE, 'w', encoding='utf-8') as f:
             f.write('')
-        print(f"✅ Файл {DATA_FILE} создан")
+        print(f"Файл {DATA_FILE} создан")
 
 def get_last_line() -> str:
     try:
@@ -61,7 +61,7 @@ async def save_data(request: SaveRequest):
         with open(DATA_FILE, 'a', encoding='utf-8') as f:
             f.write(entry)
 
-        print(f"✅ Данные сохранены: {request.data}")
+        print(f"Данные сохранены: {request.data}")
         return SaveResponse(
             message="Данные успешно сохранены",
             timestamp=timestamp,
@@ -73,27 +73,6 @@ async def save_data(request: SaveRequest):
     except Exception as e:
         print(f" Ошибка сохранения: {e}")
         raise HTTPException(status_code=500, detail="Ошибка сохранения")
-
-@app.get("/data", response_model=DataResponse)
-async def get_data():
-    try:
-        last_line = get_last_line()
-
-        if not last_line:
-            return DataResponse(
-                content="Файл data.txt пуст",
-                isEmpty=True
-            )
-
-        print(f"Возвращаем последние данные: {last_line}")
-        return DataResponse(
-            content=last_line,
-            isEmpty=False
-        )
-
-    except Exception as e:
-        print(f"Ошибка получения данных.: {e}")
-        raise HTTPException(status_code=500, detail="Ошибка чтения файла")
 
 if __name__ == "__main__":
     import uvicorn
