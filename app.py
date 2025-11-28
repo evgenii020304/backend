@@ -8,13 +8,14 @@ app = FastAPI(title="DevOps Backend", version="1.0.0")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173", "http://localhost:3000"],
+    allow_origins=["http://localhost:5173", "http://localhost:3000", "http://localhost:4173"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-DATA_FILE = 'data.txt'
+DATA_DIR = 'data'
+DATA_FILE = os.path.join(DATA_DIR, 'data.txt')
 
 class SaveRequest(BaseModel):
     data: str
@@ -29,6 +30,10 @@ class DataResponse(BaseModel):
     isEmpty: bool
 
 def ensure_data_file():
+    """Создает директорию и файл данных если они не существуют"""
+    if not os.path.exists(DATA_DIR):
+        os.makedirs(DATA_DIR)
+        print(f"Директория {DATA_DIR} создана")
     if not os.path.exists(DATA_FILE):
         with open(DATA_FILE, 'w', encoding='utf-8') as f:
             f.write('')
@@ -36,6 +41,8 @@ def ensure_data_file():
 
 def get_last_line() -> str:
     try:
+        ensure_data_file()
+
         if not os.path.exists(DATA_FILE):
             return None
 
@@ -49,6 +56,10 @@ def get_last_line() -> str:
         print(f" Ошибка чтения файла: {e}")
         return None
 
+@app.get("/")
+async def root():
+    return {"message": "DevOps Backend API", "status": "running"}
+
 @app.post("/save", response_model=SaveResponse)
 async def save_data(request: SaveRequest):
     try:
@@ -57,6 +68,8 @@ async def save_data(request: SaveRequest):
 
         timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
         entry = f"[{timestamp}] {request.data}\n"
+
+        ensure_data_file()
 
         with open(DATA_FILE, 'a', encoding='utf-8') as f:
             f.write(entry)
